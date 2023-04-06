@@ -1,8 +1,11 @@
 package algonquin.cst2335.khan0494;
-
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -22,6 +25,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 import algonquin.cst2335.khan0494.ChatViewModel;
+import algonquin.cst2335.khan0494.MessageDetailsFragment;
 import algonquin.cst2335.khan0494.databinding.ActivityChatRoomBinding;
 import algonquin.cst2335.khan0494.databinding.RecieveMessageBinding;
 import algonquin.cst2335.khan0494.databinding.SentMessageBinding;
@@ -35,17 +39,32 @@ public class ChatRoom extends AppCompatActivity {
     String currentDateAndTime = sdf.format(new Date());
     ChatMessage chat = new ChatMessage("", "", false);
     ChatMessageDAO mDAO;
+    FragmentManager fMgr = getSupportFragmentManager();
+    FragmentTransaction tx = fMgr.beginTransaction();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
 
         binding = ActivityChatRoomBinding.inflate(getLayoutInflater());
         chatModel = new ViewModelProvider(this).get(ChatViewModel.class);
         messages = chatModel.messages.getValue();
         MessageDatabase db = Room.databaseBuilder(getApplicationContext(), MessageDatabase.class, "database-name").build();
         mDAO = db.cmDAO();
+
+
         setContentView(binding.getRoot());
+        ChatViewModel.selectedMessage.observe(this, (newMessageValue) -> {
+            FragmentManager fMgr = getSupportFragmentManager();
+            FragmentTransaction tx = fMgr.beginTransaction();
+
+            MessageDetailsFragment chatFragment = new MessageDetailsFragment( newMessageValue);
+            tx.add(R.id.fragmentLocation, chatFragment);
+            tx.commit();
+            tx.addToBackStack("");
+        });
         if (messages == null) {
 
             chatModel.messages.setValue(messages = new ArrayList<ChatMessage>());
@@ -53,6 +72,7 @@ public class ChatRoom extends AppCompatActivity {
             thread.execute(() ->
             {
                 mDAO.insertMessage(chat);
+
             });
         }
         binding.sendButton.setOnClickListener(click -> {
@@ -133,10 +153,14 @@ public class ChatRoom extends AppCompatActivity {
         public MyRowHolder(@NonNull View itemView) {
             super(itemView);
 
-            itemView.setOnClickListener(clk ->  {
+            itemView.setOnClickListener(clk -> {
 
                 int position = getAbsoluteAdapterPosition();
+                ChatMessage selected = messages.get(position);
 
+                chatModel.selectedMessage.postValue(selected);
+
+                /*
                 AlertDialog.Builder builder = new AlertDialog.Builder( ChatRoom.this );
                 builder.setTitle("Question:")
                         .setMessage("Do you want to delete the message: " + messageText.getText())
@@ -157,7 +181,7 @@ public class ChatRoom extends AppCompatActivity {
                                     })
                                     .show();
                         })
-                        .create().show();
+                        .create().show();*/
             });
 
             messageText = itemView.findViewById(R.id.messageText);
