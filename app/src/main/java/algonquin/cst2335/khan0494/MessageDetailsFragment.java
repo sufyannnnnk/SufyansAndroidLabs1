@@ -14,22 +14,26 @@ import algonquin.cst2335.khan0494.ChatMessage;
 import algonquin.cst2335.khan0494.databinding.DetailsLayoutBinding;
 
 
-public class MessageDetailsFragment extends Fragment {
-    ChatMessage selected;
-    public MessageDetailsFragment(ChatMessage m ){
-        selected= m;
+public class MessageDetailsFragment {
+    public static class MessageDetailedFragment extends Fragment {
 
-    }
+        ChatMessage selected;
 
-    @Override
-    public View onCreateView( LayoutInflater inflater,  ViewGroup container,  Bundle savedInstanceState) {
-        super.onCreateView(inflater, container, savedInstanceState);
+        public MessageDetailedFragment(ChatMessage m){
+            selected = m;
+        }
 
-        DetailsLayoutBinding binding = DetailsLayoutBinding.inflate(inflater);
-        binding.messageText.setText(selected.getMessage());
-        binding.timeText.setText(selected.getTimeSent());
-        binding.databaseText.setText("Id = " + selected.id);
-        return binding.getRoot();
+        @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+            super.onCreateView(inflater, container, savedInstanceState);
+            DetailsLayoutBinding binding = DetailsLayoutBinding.inflate(inflater);
 
+
+            binding.messageText.setText(selected.message);
+            binding.timeText.setText(selected.getTimeSent());
+            binding.databaseText.setText("Id " + selected.id );
+
+            return binding.getRoot();
+        }
     }
 }
